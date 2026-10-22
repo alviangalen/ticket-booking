@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .tactile-card {
+    border: 2px solid #261c1a;
+    box-shadow: 4px 4px 0px #261c1a;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .tactile-card:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 6px 6px 0px #261c1a;
+  }
+  .tactile-btn {
+    border: 2px solid #261c1a;
+    box-shadow: 4px 4px 0px #261c1a;
+    transition: all 0.15s ease;
+  }
+  .tactile-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #261c1a;
+  }
+  .tactile-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #261c1a;
+  }
+  .ticket-stub {
+    position: relative;
+    background: #fff8f6;
+  }
+  .notch-top, .notch-bottom {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #fdf9f3;
+    border: 2px solid #261c1a;
+    border-radius: 9999px;
+    z-index: 10;
+  }
+  .notch-top {
+    top: -14px;
+    right: 140px;
+    clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+  }
+  .notch-bottom {
+    bottom: -14px;
+    right: 140px;
+    clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+  }
+  @media (max-width: 640px) {
+    .notch-top {
+      right: auto;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 180px;
+    }
+    .notch-bottom {
+      display: none;
+    }
+  }
+}

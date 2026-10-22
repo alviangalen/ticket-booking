@@ -1,0 +1,26 @@
+{
+  "name": "ticket-booking-backend",
+  "version": "1.0.0",
+  "description": "Serverless Backend for Concert Ticket Booking with Concurrency Control",
+  "main": "src/handlers/health.ts",
+  "scripts": {
+    "dev": "ts-node src/devServer.ts",
+    "start": "ts-node src/devServer.ts",
+    "build": "tsc",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "ts-node src/db/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.14.0",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

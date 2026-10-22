@@ -1,0 +1,73 @@
+service: ticket-booking-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${opt:region, 'ap-southeast-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 512
+  timeout: 10
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    DATABASE_URL: ${env:DATABASE_URL, ''}
+  httpApi:
+    cors: true
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: node20
+    platform: node
+    external:
+      - '@prisma/client'
+      - '.prisma'
+    packager: npm
+
+functions:
+  health:
+    handler: src/handlers/health.handler
+    events:
+      - http:
+          path: health
+          method: get
+          cors: true
+
+  getEvents:
+    handler: src/handlers/getEvents.handler
+    events:
+      - http:
+          path: events
+          method: get
+          cors: true
+
+  getTicketTiers:
+    handler: src/handlers/getTicketTiers.handler
+    events:
+      - http:
+          path: tickets/tiers
+          method: get
+          cors: true
+
+  bookSeat:
+    handler: src/handlers/bookSeat.handler
+    events:
+      - http:
+          path: tickets/book
+          method: post
+          cors: true
+
+  getBookingStatus:
+    handler: src/handlers/getBookingStatus.handler
+    events:
+      - http:
+          path: bookings/status
+          method: get
+          cors: true

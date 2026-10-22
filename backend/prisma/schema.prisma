@@ -1,0 +1,73 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "rhel-openssl-1.0.x"]
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
+model Event {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  title       String
+  subtitle    String?
+  venue       String
+  date        DateTime
+  gatesOpen   String
+  description String
+  bannerUrl   String?
+  ticketTiers TicketTier[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("events")
+}
+
+model TicketTier {
+  id             String    @id @default(uuid())
+  eventId        String
+  event          Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  price          Int
+  totalQuota     Int
+  availableQuota Int
+  version        Int       @default(0) // Optimistic concurrency lock control
+  status         String    @default("AVAILABLE") // AVAILABLE, SOLD_OUT, LIMITED
+  perks          String[]  @default([])
+  bookings       Booking[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("ticket_tiers")
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  bookingCode   String        @unique
+  ticketTierId  String
+  ticketTier    TicketTier    @relation(fields: [ticketTierId], references: [id])
+  customerName  String
+  customerEmail String
+  customerPhone String
+  quantity      Int
+  totalPrice    Int
+  paymentMethod String
+  paymentStatus PaymentStatus @default(PENDING)
+  qrPayload     String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([customerEmail])
+  @@index([bookingCode])
+  @@map("bookings")
+}
