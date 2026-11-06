@@ -4,7 +4,7 @@ Monorepo Serverless Web App untuk pemesanan tiket konser Sheila on 7 dengan prot
 
 ---
 
-## 🏗️ Tech Stack & Architecture
+## Tech Stack & Architecture
 
 - **Frontend (`/frontend`)**:
   - React 18, Vite, TypeScript
@@ -21,7 +21,7 @@ Monorepo Serverless Web App untuk pemesanan tiket konser Sheila on 7 dengan prot
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 ticket-booking-monorepo/
@@ -70,7 +70,7 @@ ticket-booking-monorepo/
 
 ---
 
-## ⚡ Concurrency & "War Tiket" Protection
+## Concurrency & "War Tiket" Protection
 
 Pada `backend/src/handlers/bookSeat.ts`:
 1. Menggunakan kolom `version` pada tabel `TicketTier`.
@@ -92,7 +92,7 @@ Pada `backend/src/handlers/bookSeat.ts`:
 
 ---
 
-## 🚀 Cara Menjalankan
+## Cara Menjalankan
 
 ### Frontend
 ```bash
