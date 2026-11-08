@@ -84,7 +84,8 @@ ticket-booking/
 │   │   │   ├── getEvents.ts      # GET /events
 │   │   │   ├── getTicketTiers.ts # GET /tickets/tiers
 │   │   │   ├── bookSeat.ts       # POST /tickets/book (Anti "War Tiket")
-│   │   │   └── getBookingStatus.ts # GET /bookings/status
+│   │   │   ├── getBookingStatus.ts # GET /bookings/status
+│   │   │   └── initDB.ts         # Manual Lambda Trigger: Serverless Database Init & Seeding
 │   │   ├── utils/
 │   │   │   ├── apiResponse.ts    # Standard API Gateway response formatting + CORS
 │   │   │   └── types.ts          # Backend TypeScript interfaces
@@ -112,6 +113,9 @@ Semua endpoint mengembalikan respons standar format `{ "success": boolean, "data
 | `GET` | `/tickets/tiers` | `?eventId=...` *(opsional)* | Mengambil daftar kategori tiket (*FESTIVAL A/B, VIP*), harga, kuota real-time | [`getTicketTiers.ts`](backend/src/handlers/getTicketTiers.ts) |
 | `POST` | `/tickets/book` | **Body (JSON):**<br>`ticketTierId`, `customerName`, `customerEmail`, `customerPhone`, `quantity` (1-4), `paymentMethod` (`qris`/`va`) | Pemesanan tiket dengan transaksi atomik dan penguncian optimistik | [`bookSeat.ts`](backend/src/handlers/bookSeat.ts) |
 | `GET` | `/bookings/status` | `?code=...` atau `?email=...` | Memeriksa rincian e-tiket, QR payload, dan verifikasi pembayaran | [`getBookingStatus.ts`](backend/src/handlers/getBookingStatus.ts) |
+
+> **Catatan Fungsi Khusus (`initDB`):**  
+> Fungsi Lambda `initDB` ([`backend/src/handlers/initDB.ts`](backend/src/handlers/initDB.ts)) tidak di-attach ke endpoint HTTP publik demi alasan keamanan. Fungsi ini dijalankan secara manual *(one-time initialization)* melalui AWS Management Console atau AWS CLI untuk membuat tabel dan melakukan data seeding.
 
 ---
 
@@ -188,3 +192,47 @@ Build produksi:
 ```bash
 npm run build
 ```
+
+---
+
+### 4. Database Initialization (Serverless Lambda Alternative)
+
+Untuk inisialisasi skema tabel database dan *data seeding* konser, pengembang/administrator kini memiliki **dua pilihan pendekatan**:
+
+#### a) Pilihan A: Metode EC2 Bastion Host / CLI Lokal (Tradisional)
+Jika Anda memiliki akses CLI/terminal langsung ke jaringan database (misalnya koneksi lokal, VPN, atau instance EC2 Bastion Host di dalam VPC yang sama dengan Amazon RDS):
+```bash
+cd backend
+# 1. Terapkan skema Prisma ke PostgreSQL
+npx prisma db push
+
+# 2. Jalankan seeding data konser & tiket
+npm run prisma:seed
+```
+
+#### b) Pilihan B: Metode Pure Serverless (Tanpa Akses EC2 CLI)
+Jika database berada di dalam *private subnet* VPC AWS tanpa instance EC2 Bastion Host atau akses CLI langsung, gunakan fungsi Lambda `initDB`:
+1. **Deploy Stack Serverless**:
+   ```bash
+   cd backend
+   npx serverless deploy
+   ```
+2. **Jalankan Inisialisasi melalui AWS Management Console**:
+   - Masuk ke **AWS Management Console** & buka layanan **AWS Lambda**.
+   - Cari dan buka fungsi Lambda: `ticket-booking-api-<stage>-initDB` (misal: `ticket-booking-api-dev-initDB`).
+   - Masuk ke tab **Test**.
+   - Berikan nama test event (misal: `ManualInitDB`) dengan payload JSON kosong `{}`.
+   - Klik tombol **Test** berwarna oranye.
+3. **Alternatif via AWS CLI**:
+   ```bash
+   aws lambda invoke \
+     --function-name ticket-booking-api-dev-initDB \
+     --payload '{}' \
+     response.json
+   cat response.json
+   ```
+
+Fungsi `initDB` akan secara otomatis:
+- Menjalankan kueri raw SQL DDL `CREATE TABLE IF NOT EXISTS` via `prisma.$executeRawUnsafe()` untuk tipe enum `PaymentStatus`, tabel `events`, `ticket_tiers`, `bookings`, dan semua indeks terkait.
+- Melakukan *data seeding* menggunakan `prisma.event.upsert` dan `prisma.ticketTier.upsert` sehingga aman dijalankan berulang kali tanpa risiko duplikasi data.
+- Mengembalikan respons JSON standar `{ "statusCode": 200, "body": "..." }`.

@@ -6,6 +6,7 @@ import { handler as getEventsHandler } from "./handlers/getEvents";
 import { handler as getTicketTiersHandler } from "./handlers/getTicketTiers";
 import { handler as bookSeatHandler } from "./handlers/bookSeat";
 import { handler as getBookingStatusHandler } from "./handlers/getBookingStatus";
+import { handler as initDBHandler } from "./handlers/initDB";
 
 const PORT = process.env.PORT || 3000;
 
@@ -94,6 +95,8 @@ const server = http.createServer(async (req, res) => {
         result = await (bookSeatHandler as any)(lambdaEvent, mockContext, () => {});
       } else if (pathname === "/bookings/status" && req.method === "GET") {
         result = await (getBookingStatusHandler as any)(lambdaEvent, mockContext, () => {});
+      } else if (pathname === "/init-db" && (req.method === "POST" || req.method === "GET")) {
+        result = await (initDBHandler as any)(lambdaEvent, mockContext, () => {});
       } else {
         res.writeHead(404, {
           "Content-Type": "application/json",
@@ -131,4 +134,5 @@ server.listen(PORT, () => {
   console.log(` - GET  /dev/tickets/tiers`);
   console.log(` - POST /dev/tickets/book`);
   console.log(` - GET  /dev/bookings/status`);
+  console.log(` - POST /dev/init-db (manual DB initialization)`);
 });

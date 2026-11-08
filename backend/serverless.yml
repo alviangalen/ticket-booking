@@ -74,3 +74,7 @@ functions:
           path: bookings/status
           method: get
           cors: true
+
+  initDB:
+    handler: src/handlers/initDB.handler
+    timeout: 30
